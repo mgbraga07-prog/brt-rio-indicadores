@@ -1,0 +1,97 @@
+// Código A.8 — Medidas DAX de velocidade
+// Entrada: GPS_BRT, d_Mes, d_Corredor · Saída: medidas de velocidade realizada e planejada
+
+Vel Media Ponderada =
+DIVIDE(
+    SUMX(GPS_BRT, GPS_BRT[velocidade_media_kmh] * GPS_BRT[total_registros_gps]),
+    SUM(GPS_BRT[total_registros_gps])
+)
+
+DP Medio Ponderado =
+DIVIDE(
+    SUMX(GPS_BRT, GPS_BRT[desvio_padrao_velocidade] * GPS_BRT[total_registros_gps]),
+    SUM(GPS_BRT[total_registros_gps])
+)
+
+CV Velocidade Mensal =
+VAR Serie =
+    FILTER (
+        ADDCOLUMNS ( VALUES ( d_Mes[AnoMes] ), "@vel", [Vel Media Ponderada] ),
+        NOT ISBLANK ( [@vel] )
+    )
+VAR Media = AVERAGEX ( Serie, [@vel] )
+VAR Desvio = STDEVX.S ( Serie, [@vel] )
+RETURN
+IF ( COUNTROWS ( Serie ) >= 3, DIVIDE ( Desvio, Media ) * 100 )
+
+
+Velocidade Operacional Planejada Ponderada =
+DIVIDE(
+    SUMX(
+        'd_Rotas/Viagens (2022-2026)',
+        'd_Rotas/Viagens (2022-2026)'[Velocidade Operacional Planejada] *
+        SWITCH(
+            'd_Rotas/Viagens (2022-2026)'[service_id],
+            "U_REG", 5,
+            "S_REG", 1,
+            "D_REG", 1,
+            0
+        )
+    ),
+    SUMX(
+        'd_Rotas/Viagens (2022-2026)',
+        SWITCH(
+            'd_Rotas/Viagens (2022-2026)'[service_id],
+            "U_REG", 5,
+            "S_REG", 1,
+            "D_REG", 1,
+            0
+        )
+    )
+)
+
+Gap Velocidade Ultimo Ano =
+VAR ultimoAno = [Ultimo Ano Dados]
+RETURN
+CALCULATE(
+    [Vel Media Ponderada] - [Velocidade Operacional Planejada Ponderada],
+    GPS_BRT[ano] = ultimoAno
+)
+
+Velocidade Histórica TransCarioca Local =
+VAR Texto =
+    CALCULATE(
+        FIRSTNONBLANK(
+            'd_Indicadores - TransCarioca Pré Intervenção'[Valor],
+            1
+        ),
+        'd_Indicadores - TransCarioca Pré Intervenção'[Indicador] = "Velocidade operacional, corredor"
+    )
+VAR PosLocal = FIND("Local service: ", Texto)
+RETURN
+    VALUE(
+        MID(
+            Texto,
+            PosLocal + 15,
+            LEN(Texto)
+        )
+    )/10
+
+Velocidade Histórica TransOeste Local =
+VAR Texto =
+    CALCULATE(
+        FIRSTNONBLANK(
+            'd_Indicadores - TransOeste Pré Intervenção'[Valor],
+            1
+        ),
+        'd_Indicadores - TransOeste Pré Intervenção'[Indicador] = "Velocidade operacional, corredor"
+    )
+VAR PosLocal = FIND("Local service: ", Texto)
+RETURN
+    VALUE(
+        MID(
+            Texto,
+            PosLocal + 15,
+            LEN(Texto)
+        )
+    )/10

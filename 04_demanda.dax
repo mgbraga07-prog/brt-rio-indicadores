@@ -1,0 +1,21 @@
+// Código A.11 — Medidas DAX de demanda
+// Entrada: Passageiros por Estação, d_Ano · Saída: totais, índice de recuperação e passageiros por estação
+
+Passageiros / Estação =
+SUM('Passageiros por Estação'[Passageiros]) / DISTINCTCOUNT('Passageiros por Estação'[Estações])
+
+Passageiros Ultimo Ano =
+VAR ultimoAno = [Ultimo Ano Dados]
+RETURN
+CALCULATE(
+    SUM('Passageiros por Estação'[Passageiros]),
+    'Passageiros por Estação'[Ano] = ultimoAno
+)
+
+Pct Recuperacao Pico =
+VAR pico2016 = CALCULATE(
+    SUM('Passageiros por Estação'[Passageiros]),
+    'Passageiros por Estação'[Ano] = 2016
+)
+RETURN
+FORMAT(DIVIDE([Passageiros Ultimo Ano], pico2016) * 100, "0.0") & "% do pico histórico (2016)"

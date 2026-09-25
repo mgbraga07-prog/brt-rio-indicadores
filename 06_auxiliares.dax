@@ -1,0 +1,13 @@
+// Código A.13 — Medidas auxiliares e rótulos
+
+Ultimo Ano Dados =
+CALCULATE(
+    MAX(GPS_BRT[ano]),
+    GPS_BRT[ano] > 0
+)
+
+Label Ultimo Ano =
+"Ano " & FORMAT([Ultimo Ano Dados], "0") & " — último dado disponível"
+
+Label Gap Velocidade =
+"planejada vs. realizada (" & FORMAT([Ultimo Ano Dados], "0") & ")"

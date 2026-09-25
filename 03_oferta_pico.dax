@@ -1,0 +1,40 @@
+// Código A.10 — Medidas DAX de oferta na hora pico
+// Entrada: GPS_BRT_oferta_corredor e GPS_BRT_oferta_sistema · Saída: veículos distintos por hora
+
+Oferta Pico Corredor =
+AVERAGE('GPS_BRT_oferta_corredor'[veic_hora_pico])
+
+Oferta Pico Sistema =
+AVERAGE('GPS_BRT_oferta_sistema'[veic_hora_pico])
+
+Oferta Pico Sistema Ultimo Ano =
+VAR ultimoAno = [Ultimo Ano Dados]
+RETURN
+CALCULATE([Oferta Pico Sistema], 'GPS_BRT_oferta_sistema'[ano] = ultimoAno)
+
+Pct Variacao Oferta =
+VAR base2022 = CALCULATE([Oferta Pico Sistema], 'GPS_BRT_oferta_sistema'[ano] = 2022)
+VAR atual = [Oferta Pico Sistema Ultimo Ano]
+RETURN
+"+" & FORMAT(DIVIDE(atual - base2022, base2022) * 100, "0") & "% vs. 2022"
+
+
+Frequência Histórica TransCarioca Pico =
+VAR Texto =
+    CALCULATE(
+        SELECTEDVALUE('d_Indicadores - TransCarioca Pré Intervenção'[Valor]),
+        'd_Indicadores - TransCarioca Pré Intervenção'[Indicador] =
+            "Frequência na hora pico, corredor (ônibus por hora por direção)"
+    )
+RETURN
+    Texto
+
+Frequência Histórica TransOeste Pico =
+VAR Texto =
+    CALCULATE(
+        SELECTEDVALUE('d_Indicadores - TransOeste Pré Intervenção'[Valor]),
+        'd_Indicadores - TransOeste Pré Intervenção'[Indicador] =
+            "Frequência na hora pico, corredor (ônibus por hora por direção)"
+    )
+RETURN
+    Texto

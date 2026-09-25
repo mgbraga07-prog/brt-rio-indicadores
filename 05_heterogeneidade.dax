@@ -1,0 +1,111 @@
+// Código A.12 — Medidas DAX de heterogeneidade por estação
+// Entrada: Passageiros por Estação · Saída: mediana de referência, crescimento e dispersão por corredor
+
+Passageiros por Estação Último Ano =
+VAR ultimoAno =
+    CALCULATE(MAX('Passageiros por Estação'[Ano]), ALL('Passageiros por Estação'[Ano]))
+RETURN
+CALCULATE(
+    AVERAGEX(
+        VALUES('Passageiros por Estação'[Estações]),
+        CALCULATE(SUM('Passageiros por Estação'[Passageiros]))
+    ),
+    ALL('Passageiros por Estação'[Ano]),
+    'Passageiros por Estação'[Ano] = ultimoAno
+)
+
+Mediana Passageiros Estação Pré (2013-2021) =
+AVERAGEX(
+    VALUES('Passageiros por Estação'[Estações]),
+    VAR AnosPre =
+        FILTER(
+            ALL('Passageiros por Estação'[Ano]),
+            'Passageiros por Estação'[Ano] >= 2013 && 'Passageiros por Estação'[Ano] <= 2021
+        )
+    RETURN
+        MEDIANX(AnosPre, CALCULATE(SUM('Passageiros por Estação'[Passageiros])))
+)
+
+Crescimento por Estação % (vs. Mediana Pré) =
+VAR atual = [Passageiros por Estação Último Ano]
+VAR pre = [Mediana Passageiros Estação Pré (2013-2021)]
+RETURN
+IF(pre > 0, DIVIDE(atual - pre, pre), BLANK())
+
+DP Crescimento por Estação =
+STDEVX.P(
+    VALUES('Passageiros por Estação'[Estações]),
+    [Crescimento por Estação % (vs. Mediana Pré)]
+)
+
+Média Passageiros Estação Pré (>2012) =
+AVERAGEX(
+    VALUES('Passageiros por Estação'[Estações]),
+    VAR AnosPre =
+        FILTER(
+            ALL('Passageiros por Estação'[Ano]),
+            'Passageiros por Estação'[Ano] >= 2012 && 'Passageiros por Estação'[Ano] <= 2021
+        )
+    RETURN
+        AVERAGEX(AnosPre, CALCULATE(SUM('Passageiros por Estação'[Passageiros])))
+)
+
+Crescimento por Estação % (vs. Média Pré) =
+VAR atual = [Passageiros por Estação Último Ano]
+VAR mediaPre = [Média Passageiros Estação Pré (>2012)]
+RETURN
+IF(mediaPre > 0, DIVIDE(atual - mediaPre, mediaPre), BLANK())
+
+Min Passageiros por Estação =
+MINX(
+    VALUES('Passageiros por Estação'[Estações]),
+    CALCULATE(SUM('Passageiros por Estação'[Passageiros]))
+)
+ 
+Max Passageiros por Estação =
+MAXX(
+    VALUES('Passageiros por Estação'[Estações]),
+    CALCULATE(SUM('Passageiros por Estação'[Passageiros]))
+)
+
+Média Passageiros por Estação 2021 (Card) =
+CALCULATE(
+    AVERAGEX(
+        VALUES('Passageiros por Estação'[Estações]),
+        CALCULATE(SUM('Passageiros por Estação'[Passageiros]))
+    ),
+    ALL('Passageiros por Estação'),
+    'Passageiros por Estação'[Ano] = 2021
+)
+ 
+Média Passageiros por Estação Último Ano (Card) =
+VAR ultimoAno =
+    CALCULATE(
+        MAX('Passageiros por Estação'[Ano]),
+        ALL('Passageiros por Estação')
+    )
+RETURN
+CALCULATE(
+    AVERAGEX(
+        VALUES('Passageiros por Estação'[Estações]),
+        CALCULATE(SUM('Passageiros por Estação'[Passageiros]))
+    ),
+    ALL('Passageiros por Estação'),
+    'Passageiros por Estação'[Ano] = ultimoAno
+)
+ 
+Variação Média por Estação vs 2021 (Card) =
+DIVIDE(
+    [Média Passageiros por Estação Último Ano (Card)] - [Média Passageiros por Estação 2021 (Card)],
+    [Média Passageiros por Estação 2021 (Card)]
+)
+ 
+Label Variação Média por Estação =
+VAR mediaRef = [Média Passageiros por Estação 2021 (Card)]
+VAR variacao = [Variação Média por Estação vs 2021 (Card)]
+RETURN
+IF(
+    variacao > 0,
+    "+" & FORMAT(variacao, "0%") & " vs. " & FORMAT(mediaRef, "#,##0,") & " mil passageiros/estação em 2021",
+    FORMAT(variacao, "0%") & " vs. " & FORMAT(mediaRef, "#,##0,") & " mil passageiros/estação em 2021"
+)

@@ -1,0 +1,16 @@
+// Código A.9 — Medidas DAX de frota
+// Entrada: GPS_BRT_frota, d_Ano · Saída: média mensal e referências institucionais
+
+Frota Ultimo Ano =
+VAR ultimoAno = [Ultimo Ano Dados]
+RETURN
+CALCULATE(
+    AVERAGE(GPS_BRT_frota[frota_operante_total]),
+    GPS_BRT_frota[ano] = ultimoAno
+)
+
+Frota Referência 2016 = 436
+
+Frota Referência 2020 = 120
+
+Label Frota Ref = "referência 2016: 436 veíc. (frota total)"
